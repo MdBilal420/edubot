@@ -2,6 +2,7 @@
 
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Toaster } from "sonner";
 import { useTranscription } from "../hooks/useTranscription";
 import InputSidebar from "./InputSidebar";
 import OutputSection from "./OutputSection";
@@ -25,6 +26,7 @@ export default function Dashboard() {
 		clearTranscription,
 		retryTranscription,
 	} = useTranscription();
+	const [chatMessages, setChatMessages] = useState([]);
 
 	// Close sidebar by default on mobile
 	useEffect(() => {
@@ -73,32 +75,50 @@ export default function Dashboard() {
 
 				// If successful, generate summary and quiz
 				if (result) {
-					// Generate summary (mock for now)
-					const summary = `Summary of: ${result.transcription.substring(
-						0,
-						100
-					)}...`;
-
-					// Generate quiz questions (mock for now)
-					const questions = [
+					// Call backend to generate summary
+					const summaryResponse = await fetch(
+						"http://localhost:8000/api/generate-summary",
 						{
-							question: "What is the main topic of this lecture?",
-							options: [
-								"Option A from the content",
-								"Option B from the content",
-								"Option C from the content",
-								"Option D from the content",
-							],
-							correctAnswer: 0,
-						},
-						{
-							question: "Which concept was discussed first in the lecture?",
-							options: ["Concept A", "Concept B", "Concept C", "Concept D"],
-							correctAnswer: 1,
-						},
-					];
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								transcript: result.transcription,
+							}),
+						}
+					);
 
-					// Update output data with all the information
+					let summary = "";
+					if (summaryResponse.ok) {
+						const summaryData = await summaryResponse.json();
+						summary = summaryData.success
+							? summaryData.summary
+							: "Failed to generate summary";
+					}
+
+					// Call backend to generate quiz questions
+					const quizResponse = await fetch(
+						"http://localhost:8000/api/generate-quiz",
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								transcript: result.transcription,
+								num_questions: 5, // Request 5 questions
+							}),
+						}
+					);
+
+					let questions = [];
+					if (quizResponse.ok) {
+						const quizData = await quizResponse.json();
+						questions = quizData.success ? quizData.questions : [];
+					}
+
+					// Update output data with all information
 					setOutputData((prev) => ({
 						...prev,
 						summary,
@@ -202,8 +222,18 @@ export default function Dashboard() {
 					activeTab={activeTab}
 					setActiveTab={setActiveTab}
 					onRetry={handleRetry}
+					chatMessages={chatMessages}
+					setChatMessages={setChatMessages}
 				/>
 			</div>
+
+			<Toaster
+				position='top-right'
+				toastOptions={{
+					duration: 3000,
+					className: "rounded-md shadow-md",
+				}}
+			/>
 		</div>
 	);
 }

@@ -73,6 +73,8 @@ export default function OutputSection({
 	activeTab,
 	setActiveTab,
 	onRetry,
+	chatMessages,
+	setChatMessages,
 }) {
 	return (
 		<div className='h-full flex flex-col'>
@@ -101,16 +103,16 @@ export default function OutputSection({
 								Summary
 							</TabsTrigger>
 							<TabsTrigger
-								value='ask'
-								className='flex-1 text-xs md:text-sm whitespace-nowrap'
-							>
-								Ask Tutor
-							</TabsTrigger>
-							<TabsTrigger
 								value='quiz'
 								className='flex-1 text-xs md:text-sm whitespace-nowrap'
 							>
 								Test Knowledge
+							</TabsTrigger>
+							<TabsTrigger
+								value='ask'
+								className='flex-1 text-xs md:text-sm whitespace-nowrap'
+							>
+								Ask Tutor
 							</TabsTrigger>
 						</TabsList>
 					</Tabs>
@@ -127,8 +129,8 @@ export default function OutputSection({
 						<TabsList>
 							<TabsTrigger value='transcription'>Transcription</TabsTrigger>
 							<TabsTrigger value='summary'>Summary</TabsTrigger>
-							<TabsTrigger value='ask'>Ask Tutor</TabsTrigger>
 							<TabsTrigger value='quiz'>Test Knowledge</TabsTrigger>
+							<TabsTrigger value='ask'>Ask Tutor</TabsTrigger>
 						</TabsList>
 					</div>
 
@@ -141,12 +143,16 @@ export default function OutputSection({
 							<SummaryTab data={data} />
 						</TabsContent>
 
-						<TabsContent value='ask' className='h-full'>
-							<AskTutorTab data={data} />
-						</TabsContent>
-
 						<TabsContent value='quiz' className='h-full'>
 							<QuizTab data={data} />
+						</TabsContent>
+
+						<TabsContent value='ask' className='h-full'>
+							<AskTutorTab
+								data={data}
+								messages={chatMessages}
+								setMessages={setChatMessages}
+							/>
 						</TabsContent>
 					</div>
 				</Tabs>
